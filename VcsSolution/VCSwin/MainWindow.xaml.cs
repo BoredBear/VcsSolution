@@ -27,6 +27,7 @@ namespace VCSwin
             MySql mySql1 = new MySql();
             var clasrooms = mySql1.GetClassrooms();
             var subjects = mySql1.GetSubjects();
+            var types = mySql1.GetTypeOfClass();
             foreach(var c in clasrooms)
             {
                 cmbClassroom.Items.Add(c);
@@ -34,6 +35,10 @@ namespace VCSwin
             foreach(var s in subjects)
             {
                 cmbSubject.Items.Add(s);
+            }
+            foreach(var t in types)
+            {
+                cmbType.Items.Add(t);
             }
         }
 
@@ -66,7 +71,8 @@ namespace VCSwin
                     Student,
                     (DateTime)dpDate.SelectedDate,
                     cmbClassroom.Text,
-                    cmbSubject.Text));
+                    cmbSubject.Text,
+                    cmbType.Text));
                 grdPresenseInfoTable.ItemsSource = studentVisits;
             } catch (NullReferenceException)
             {
@@ -76,7 +82,7 @@ namespace VCSwin
                 MessageBox.Show($"Ошибка валидации данных! Поле '{ex.FieldName}' {ex.ErrorMessage}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             MySql mysql = new MySql();
-            mysql.GetStudentVisits(new StudentVisitSearchObject(new Student(1, "Егор", "Петров", "Михайлович", true, "ИВБО-06-16"), new DateTime(2018, 10, 05, 18, 00, 00), "А5", "Архитектура вычислительных машин и систем"));
+            mysql.GetStudentVisits(new StudentVisitSearchObject(new Student(1, "Егор", "Петров", "Михайлович", true, "ИВБО-06-16"), new DateTime(2018, 10, 05, 18, 00, 00), "А5", "Архитектура вычислительных машин и систем", "Лекция"));
         }
 
         private void StudentPicked(Student student)

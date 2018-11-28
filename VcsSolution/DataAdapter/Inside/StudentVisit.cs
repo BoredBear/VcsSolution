@@ -24,6 +24,8 @@ namespace DataAdapter.Inside
 
         public bool Presense { get; private set; }
 
+        public string TypeOfClass { get; }
+
         /// <summary></summary>
         /// <param name="id">Если нет -1</param>
         /// <param name="fName"></param>
@@ -34,7 +36,7 @@ namespace DataAdapter.Inside
         /// <param name="classroom"></param>
         /// <param name="subject"></param>
         /// <param name="presense"></param>
-        public StudentVisit(int id, string fName, string lName, string pName, string group, DateTime dt, string classroom, string subject, bool presense)
+        public StudentVisit(int id, string fName, string lName, string pName, string group, DateTime dt, string classroom, string subject, bool presense, string typeofclass)
         {
             Id = id;
             FirstName = fName;
@@ -45,6 +47,7 @@ namespace DataAdapter.Inside
             Classroom = classroom;
             Presense = presense;
             Subject = subject;
+            TypeOfClass = typeofclass;
             ValidateData();
         }
 
@@ -62,6 +65,7 @@ namespace DataAdapter.Inside
             DataValidator.ValidateDateTime(DateTime, "Дата занятия");
             DataValidator.ValidateFieldTextAdvanced(Classroom, "Группа");
             DataValidator.ValidateFieldTextAdvanced(Subject, "Предмет");
+            DataValidator.ValidateFieldTextAdvanced(TypeOfClass, "Тип занятия");
         }    
     }
 }

@@ -10,7 +10,7 @@ namespace DataAdapter.Outside
     {
 
         // Params
-        private string host = "37.204.31.67";
+        private string host = "37.204.36.2";
         private int port = 3306;
         private string dataBase = "vcsdb";
         private string userName = "root";
@@ -70,7 +70,7 @@ namespace DataAdapter.Outside
                 var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    studentVisits.Add(new StudentVisit((int)reader["idpresense"], studentVisit.Student.FirstName, studentVisit.Student.LastName, studentVisit.Student.PastName, studentVisit.Student.Group, (DateTime)reader["date"], studentVisit.Classroom, studentVisit.Subject, (bool)reader["presense"]));
+                    studentVisits.Add(new StudentVisit((int)reader["idpresense"], studentVisit.Student.FirstName, studentVisit.Student.LastName, studentVisit.Student.PastName, studentVisit.Student.Group, (DateTime)reader["date"], studentVisit.Classroom, studentVisit.Subject, (bool)reader["presense"], studentVisit.TypeOfClass));
                 }
             }
             catch (NullReferenceException)
@@ -154,6 +154,33 @@ namespace DataAdapter.Outside
                 while (reader.Read())
                 {
                     groups.Add((string)reader["studentgroup"]);
+                }
+            }
+            catch (NullReferenceException)
+            {
+                throw;
+            }
+            finally
+            {
+                conn.Close();
+                conn.Dispose();
+            }
+            return groups;
+        }
+
+        public List<string> GetTypeOfClass()
+        {
+            var groups = new List<string>();
+            conn.Open();
+            try
+            {
+                var cmd = new MySqlCommand();
+                cmd.Connection = conn;
+                cmd.CommandText = TypeOfClassDbRequest();
+                var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    groups.Add((string)reader["typeofclass"]);
                 }
             }
             catch (NullReferenceException)
@@ -294,6 +321,7 @@ namespace DataAdapter.Outside
             var selectIdSubject = $"select idsubject from vcsdb.subjects where subject = '{studentVisit.Subject}'";
             var selectIdClassroom = $"select idclassroom from vcsdb.classrooms where classroom = '{studentVisit.Classroom}'";
             var selectIdStudentGroup = $"select idstudentgroup from vcsdb.studentgroups where studentgroup = '{studentVisit.Student.Group}'";
+            var selectTypeOfClass = $"select idtypeofclass from vcsdb.typeofclass where typeofclass = '{studentVisit.TypeOfClass}'";
             var selectIdClass = $"select idclass from vcsdb.shedule where ";
             request = $"SELECT * FROM vcsdb.visits " +
                 $"WHERE idstudent =({selectIdStudent}) " +
@@ -326,10 +354,20 @@ namespace DataAdapter.Outside
                 else issecond = true;
                 selectIdClass += $"idsubject = ({selectIdSubject}) ";
             }
-            if (studentVisit.Classroom != null || studentVisit.Student.Group != null || studentVisit.Subject != null)
+            if (studentVisit.TypeOfClass != null)
+            {
+                if (issecond)
+                {
+                    selectIdClass += "and ";
+                }
+                else issecond = true;
+                selectIdClass += $"idtypeofclass = ({selectTypeOfClass}) ";
+            }
+                if (studentVisit.Classroom != null || studentVisit.Student.Group != null || studentVisit.Subject != null)
             {
                 request += $"and idclass = ({selectIdClass})";
             }
+            
                 request += ";";
             return request;
         }
@@ -400,6 +438,11 @@ namespace DataAdapter.Outside
         private string GroupDbRequest()
         {
             string request = "SELECT * FROM vcsdb.studentgroups;";
+            return request;
+        }
+        private String TypeOfClassDbRequest()
+        {
+            string request = "SELECT * FROM vcsdb.typeofclass;";
             return request;
         }
     }

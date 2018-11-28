@@ -163,7 +163,7 @@ namespace Tests
         public void MySql_GetStudentVisit()
         {
             var sql = new MySql();
-            var result = sql.GetStudentVisits(new StudentVisitSearchObject(new Student(1, "Егор", "Петров", "Михайлович", true, "ИВБО-06-16"), new DateTime(2018, 10, 28), "А-1", "Английский язык"));
+            var result = sql.GetStudentVisits(new StudentVisitSearchObject(new Student(1, "Егор", "Петров", "Михайлович", true, "ИВБО-06-16"), new DateTime(2018, 10, 28), "А-1", "Английский язык", "Лабораторная"));
             Assert.IsTrue(result.Count > 0);
             Assert.AreEqual(10, result[0].Id);
         }
@@ -172,23 +172,23 @@ namespace Tests
         public void MySql_SetStudentVisit_SetFalse()
         {
             var sql = new MySql();
-            var result = sql.SetStudentVisit(new StudentVisit(10, "Егор", "Петров", "Михайлович", "ИВБО-06-16", new DateTime(2018,10,28), "А-1", "Английский язык", false));
+            var result = sql.SetStudentVisit(new StudentVisit(10, "Егор", "Петров", "Михайлович", "ИВБО-06-16", new DateTime(2018,10,28), "А-1", "Английский язык", false, "Лабораторная"));
             Assert.IsTrue(result);
         }
         [TestMethod]
         public void MySql_SetStudentVisit_SetAndGetFalse()
         {
             var sql = new MySql();
-            var result = sql.SetStudentVisit(new StudentVisit(10, "Егор", "Петров", "Михайлович", "ИВБО-06-16", new DateTime(2018, 10, 28), "А-1", "Английский язык", false));
-            var result2 = sql.GetStudentVisits(new StudentVisitSearchObject(new Student(1, "Егор", "Петров", "Михайлович", true, "ИВБО-06-16"), new DateTime(2018, 10, 28), "А-1", "Английский язык"));
+            var result = sql.SetStudentVisit(new StudentVisit(10, "Егор", "Петров", "Михайлович", "ИВБО-06-16", new DateTime(2018, 10, 28), "А-1", "Английский язык", false, "Лабораторная"));
+            var result2 = sql.GetStudentVisits(new StudentVisitSearchObject(new Student(1, "Егор", "Петров", "Михайлович", true, "ИВБО-06-16"), new DateTime(2018, 10, 28), "А-1", "Английский язык", "Лабораторная"));
             Assert.AreEqual(result2[0].Presense, false);
         }
         [TestMethod]
         public void MySql_SetStudentVisit_SetAndGetTrue()
         {
             var sql = new MySql();
-            var result = sql.SetStudentVisit(new StudentVisit(10, "Егор", "Петров", "Михайлович", "ИВБО-06-16", new DateTime(2018, 10, 28), "А-1", "Английский язык", true));
-            var result2 = sql.GetStudentVisits(new StudentVisitSearchObject(new Student(1, "Егор", "Петров", "Михайлович", true, "ИВБО-06-16"), new DateTime(2018, 10, 28), "А-1", "Английский язык"));
+            var result = sql.SetStudentVisit(new StudentVisit(10, "Егор", "Петров", "Михайлович", "ИВБО-06-16", new DateTime(2018, 10, 28), "А-1", "Английский язык", true, "Лабораторная"));
+            var result2 = sql.GetStudentVisits(new StudentVisitSearchObject(new Student(1, "Егор", "Петров", "Михайлович", true, "ИВБО-06-16"), new DateTime(2018, 10, 28), "А-1", "Английский язык", "Лабораторная"));
             Assert.AreEqual(result2[0].Presense, true);
         }
 
@@ -244,7 +244,7 @@ namespace Tests
         public void MySql_GetStudentVisit_WrongFirstName()
         {
             var sql = new MySql();
-            var result = sql.GetStudentVisits(new StudentVisitSearchObject(new Student(1, "ЕЙор", "Петров", "Михайлович", true, "ИВБО-06-16"), new DateTime(2018, 10, 28), "А-1", "Английский язык"));
+            var result = sql.GetStudentVisits(new StudentVisitSearchObject(new Student(1, "ЕЙор", "Петров", "Михайлович", true, "ИВБО-06-16"), new DateTime(2018, 10, 28), "А-1", "Английский язык", "Лабораторная"));
             Assert.IsTrue(result.Count < 1);
         }
 
@@ -256,7 +256,7 @@ namespace Tests
             var sql = new MySql();
             try
             {
-                var result = sql.SetStudentVisit(new StudentVisit(10, "Ег3ор", "Петров", "Михайлович", "ИВБО-06-16", new DateTime(2018, 10, 28), "А-1", "Английский язык", true));
+                var result = sql.SetStudentVisit(new StudentVisit(10, "Ег3ор", "Петров", "Михайлович", "ИВБО-06-16", new DateTime(2018, 10, 28), "А-1", "Английский язык", true, "Лабораторная"));
             }
             catch(ValidationErrorException ex)
             {
@@ -274,7 +274,7 @@ namespace Tests
             var sql = new MySql();
             try
             {
-                var result = sql.SetStudentVisit(new StudentVisit(10, "Ег%ор", "Петров", "Михайлович", "ИВБО-06-16", new DateTime(2018, 10, 28), "А-1", "Английский язык", true));
+                var result = sql.SetStudentVisit(new StudentVisit(10, "Ег%ор", "Петров", "Михайлович", "ИВБО-06-16", new DateTime(2018, 10, 28), "А-1", "Английский язык", true, "Лабораторная"));
             }
             catch(ValidationErrorException ex)
             {
@@ -291,7 +291,7 @@ namespace Tests
             var sql = new MySql();
             try
             {
-                var result = sql.SetStudentVisit(new StudentVisit(10, "Егор", "Петров", "Михайлович", "ИВБО-04-16", new DateTime(2018, 10, 28), "А-1", "Английский язык", true));
+                var result = sql.SetStudentVisit(new StudentVisit(10, "Егор", "Петров", "Михайлович", "ИВБО-04-16", new DateTime(2018, 10, 28), "А-1", "Английский язык", true, "Лабораторная"));
 
             } 
             catch (ValidationErrorException ex)

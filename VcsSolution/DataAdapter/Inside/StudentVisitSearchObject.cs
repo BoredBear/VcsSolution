@@ -13,12 +13,15 @@ namespace DataAdapter.Inside
 
         public string Subject { get; }
 
-        public StudentVisitSearchObject(Student student, DateTime dateTime, string classroom, string subject)
+        public string TypeOfClass { get; }
+
+        public StudentVisitSearchObject(Student student, DateTime dateTime, string classroom, string subject, string typeofclass)
         {
             Student = student;
             DateTime = dateTime;
             Classroom = classroom;
             Subject = subject;
+            TypeOfClass = typeofclass;
 
             ValidateData();
         }
@@ -28,6 +31,7 @@ namespace DataAdapter.Inside
             DataValidator.ValidateDateTime(DateTime, "Дата");
             DataValidator.ValidateFieldTextAdvanced(Classroom, "Аудитория");
             DataValidator.ValidateFieldTextAdvanced(Subject, "Предмет");
+            DataValidator.ValidateFieldTextAdvanced(TypeOfClass, "Тип занятия");
         }
     }
 }
