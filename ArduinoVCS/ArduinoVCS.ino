@@ -50,7 +50,7 @@ void GetDeviceId()
     if(Serial.available())
     {
       String s = Serial.readString();
-      deviceId = "";
+      deviceId = "";   
       for(int i = 0; i < s.length() - 1; i++)
       {
         deviceId += s[i];

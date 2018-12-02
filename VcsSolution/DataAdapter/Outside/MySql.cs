@@ -53,6 +53,40 @@ namespace DataAdapter.Outside
             }
             return students;
         }
+
+        /// <summary>
+        /// Метод, который получает все посещения по заданным параметрам
+        /// </summary>
+        /// <param name="studentVisit"></param>
+        /// <returns></returns>
+        public bool CheckExistsVisit(string idclass)
+        {
+            bool exist = false;
+            conn.Open();
+            try
+            {
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = conn;
+                cmd.CommandText = StudentVisitsDbRequest(idclass);
+                var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    exist = true;
+                }
+            }
+            catch (NullReferenceException)
+            {
+                throw;
+            }
+            finally
+            {
+                conn.Close();
+                conn.Dispose();
+            }
+
+            return exist;
+        }
+
         /// <summary>
         /// Метод, который получает все посещения по заданным параметрам
         /// </summary>
@@ -195,13 +229,12 @@ namespace DataAdapter.Outside
             return groups;
         }
         
-        // TODO: ЗАМЕНИТЬ НА СОЗДАНИЕ НОВОГО ПОСЕЩЕНИЯ с 0
         /// <summary>
         /// Метод, который создает новое посещение с переменной Присутствие=0
         /// </summary>
         /// <param name="studentVisit"></param>
         /// <returns></returns>
-        public bool NewStudentVisit(StudentVisit studentVisit)
+        public bool NewStudentVisit(StudentVisitRequest item)
         {
             bool success = true;
             conn.Open();
@@ -209,7 +242,7 @@ namespace DataAdapter.Outside
             {
                 var cmd = new MySqlCommand();
                 cmd.Connection = conn;
-                cmd.CommandText = NewStudentVisitsDBRequest(studentVisit);
+                cmd.CommandText = NewStudentVisitsDBRequest(item);
                 var reader = cmd.ExecuteReader();
             }
             catch (NullReferenceException)
@@ -224,6 +257,72 @@ namespace DataAdapter.Outside
             }
             return success;
         }
+
+        /// <summary>
+        /// Метод, который получает всех студентов из заданной группы
+        /// </summary>
+        /// <param name="studentVisit"></param>
+        /// <returns></returns>
+        public List<string> GetStudentsFromGroup(string idgroup)
+        {
+            conn.Open();
+            var result = new List<string>();
+            try
+            {
+                var cmd = new MySqlCommand();
+                cmd.Connection = conn;
+                cmd.CommandText = GetStudentsRequest(idgroup);
+                var reader = cmd.ExecuteReader();
+                while(reader.Read())
+                { 
+                    result.Add(reader.GetString(0));
+                }
+            }
+            catch (NullReferenceException)
+            {
+                throw;
+            }
+            finally
+            {
+                conn.Close();
+                conn.Dispose();
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Метод, который устанавливает значение присутствия в новое, которое нужно ему задавать в StudentVisit.Presense по id
+        /// </summary>
+        /// <param name="studentVisit"></param>
+        /// <returns></returns>
+        public bool SetStudentVisit(PresenseSetRequest request)
+        {
+            bool success = true;
+            conn.Open();
+            try
+            {
+                var cmd = new MySqlCommand();
+                cmd.Connection = conn;
+                cmd.CommandText = PresenseSetRequest(request);
+                var qr = cmd.ExecuteNonQuery();
+                if(qr < 1)
+                {
+                    throw new Exception("Не удалось отметить посещение");
+                }
+            }
+            catch (Exception)
+            {
+                success = false;
+                throw;
+            }
+            finally
+            {
+                conn.Close();
+                conn.Dispose();
+            }
+            return success;
+        }
+
         /// <summary>
         /// Метод, который устанавливает значение присутствия в новое, которое нужно ему задавать в StudentVisit.Presense по id
         /// </summary>
@@ -238,8 +337,8 @@ namespace DataAdapter.Outside
                 var cmd = new MySqlCommand();
                 cmd.Connection = conn;
                 cmd.CommandText = SetStudentVisitPresenseDBRequest(studentVisit);
-                var qr  = cmd.ExecuteNonQuery();
-                if(qr < 1)
+                var qr = cmd.ExecuteNonQuery();
+                if (qr < 1)
                 {
                     throw new Exception("Не удалось отметить посещение");
                 }
@@ -283,6 +382,37 @@ namespace DataAdapter.Outside
             return "";
         }
 
+        public List<ScheduleItem> GetIdClassForGenerateSchedule(int pairNumber)
+        {
+            conn.Open();
+            var list = new List<ScheduleItem>();
+            try
+            {
+                var cmd = new MySqlCommand();
+                cmd.Connection = conn;
+                cmd.CommandText = GetIdClassRequest(pairNumber);
+                var reader = cmd.ExecuteReader();               
+                while(reader.Read())
+                {
+                    list.Add(new ScheduleItem()
+                    {
+                        Idclass = reader.GetString(0),
+                        idstudentgroup = reader.GetString(4)
+                    }); 
+                }               
+            }
+            catch (NullReferenceException)
+            {
+                throw;
+            }
+            finally
+            {
+                conn.Close();
+                conn.Dispose();
+            }
+            return list;
+        }
+
         // Func private
         private MySqlConnection GetDBConnection()
         {
@@ -293,6 +423,22 @@ namespace DataAdapter.Outside
 
             return conn;
         }
+
+        private String GetStudentsRequest(string idgroup)
+        {
+            string request;
+            request = "select * from vcsdb.students " +
+                $"WHERE idstudentgroup = '{idgroup}';";
+            return request;
+        }
+
+        private String GetIdClassRequest(int pairNumber)
+        {
+            string request;
+            request = $"select * from vcsdb.shedule where dayoftheweek = '{(int)DateTime.Now.DayOfWeek}' and pairnumber = '{pairNumber}'";
+            return request;
+        }
+
         private String StudentsDbRequest(StudentSearchObject student)
         {
             string request;
@@ -312,6 +458,30 @@ namespace DataAdapter.Outside
             request += ";"; 
             return request;
         }
+
+        private String PresenseSetRequest(PresenseSetRequest presenseReq)
+        {
+            string request;
+            var classroom = $"select idclassroom from vcsdb.classrooms where classroom = '{presenseReq.Classroom}'";
+            var idclass = $"select idclass from vcsdb.shedule where dayoftheweek = '{presenseReq.Dayoftheweek}' and pairnumber = '{presenseReq.PairNumber}' and idclassroom = ({classroom})";
+            request = "UPDATE vcsdb.visits " +
+                $"SET presense = '1' " +
+                $"WHERE idstudent = '{presenseReq.StudentId}' " +
+                $"AND idclass = ({idclass})" +
+                $"AND date = '{DateTime.Now.ToString("yyyy-MM-dd")}';";
+            return request;
+        }
+
+        private String StudentVisitsDbRequest(string idclass)
+        {
+            string request;
+            request = $"SELECT * FROM vcsdb.visits " +
+                $"WHERE " +
+                $"idclass = '{idclass}'" +
+                $"AND date = '{DateTime.Now.ToString("yyyy-MM-dd")}';";
+            return request;
+        }
+
         private String StudentVisitsDbRequest(StudentVisitSearchObject studentVisit)
         {
             string request;
@@ -371,30 +541,16 @@ namespace DataAdapter.Outside
                 request += ";";
             return request;
         }
-        private string NewStudentVisitsDBRequest(StudentVisit studentVisit)
+        private string NewStudentVisitsDBRequest(StudentVisitRequest item)
         {
-            string request;
-            var date = studentVisit.DateTime.ToString("yyyy-MM-dd");
-            var selectIdStudent = $"select idstudent from vcsdb.students where firstname = '{studentVisit.FirstName}' and lastname = '{studentVisit.LastName}' and pastname = '{studentVisit.PastName}'";
-            var selectIdSubject = $"select idsubject from vcsdb.subjects where subject = '{studentVisit.Subject}'";
-            var selectIdClassroom = $"select idclassroom from vcsdb.classrooms where classroom = '{studentVisit.Classroom}'";
-            var selectIdStudentGroup = $"select idstudentgroup from vcsdb.studentgroups where studentgroup = '{studentVisit.Group}'";
-            var selectIdClass = $"select idclass from vcsdb.shedule where idsubject = ({selectIdSubject}) and idclassroom = ({selectIdClassroom}) and idstudentgroup = ({selectIdStudentGroup})";
+            string request = "";
+            var date = DateTime.Now.ToString("yyyy-MM-dd");
+           
             request = $"insert into vcsdb.visits (idstudent, date, idclass, presense) " +
-                $"value(({selectIdStudent})" +
+                $"value({item.idstudent}" +
                 $", '{date}'" +
-                $", ({selectIdClass})" +
+                $", {item.idclass}" +
                 $", '0');";
-            //request = $"UPDATE vcsdb.visits " +
-            //    $"SET firstname = '{studentVisit.FirstName}' " +
-            //    $", lastname = '{studentVisit.LastName}' " +
-            //    $", pastname = '{studentVisit.PastName}' " +
-            //    $", date = '{date}' " +
-            //    $", classroom = '{studentVisit.Classroom}' " +
-            //    $", studentgroup = '{studentVisit.Group}' " +
-            //    $", subject = '{studentVisit.Subject}' " +
-            //    $", presense = '0' " +
-            //    $"WHERE idpresense = '{studentVisit.Id}';";
             return request;
         }
 
